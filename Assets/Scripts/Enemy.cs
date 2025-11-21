@@ -11,8 +11,10 @@ public class Enemy : MonoBehaviour
     public StartDir startDirection = StartDir.Left; // Inspector용 드롭다운
 
     [Header("Detection")]
-    public float detectRadius = 5f;            // 감지 반경
-    public GameObject alertIndicatorPrefab;    // 발견 시 띄울 느낌표 프리팹.. 을~ 만들어야겠죠? ㅎㅎ
+    public float detectRadius = 5f;            
+    public float detectHeight = 0.5f;          // 같은 층 판정을 위한 높이 허용 오차
+    public GameObject alertIndicatorPrefab;    
+    public bool playerInSight = false;
 
     [Header("Aim")]
     public float aimDelay = 0.5f; //조준시간
@@ -57,10 +59,12 @@ public class Enemy : MonoBehaviour
 
         bool playerHanging = (playerController != null) && playerController.isHanging; //대롱대롱?
 
-        if (!isAiming && !isShooting) // 조준or발사아닐경우 감지
+        if (!isAiming && !isShooting)
         {
-            if (dist <= detectRadius && !playerHanging)
-            {
+            CheckPlayerInSight();
+
+            if (dist <= detectRadius && !playerHanging && playerInSight)
+            {   
                 if (!isAlerted)
                 {
                     isAlerted = true;
@@ -184,5 +188,30 @@ public class Enemy : MonoBehaviour
         // 예: Instantiate 총알, 쿨다운 등. 현재는 로그용으로만 둠.
         Debug.Log($"{name}: StartShooting() called");
         // TODO: 실제 발사 구현 추가
+    }
+
+    void CheckPlayerInSight()
+    {
+        // 높이 차이 확인 - 같은 층에 있는지 체크
+        float heightDifference = Mathf.Abs(playerTransform.position.y - transform.position.y);
+        if (heightDifference > detectHeight)
+        {
+            playerInSight = false;
+            return;
+        }
+
+        // 기존 방향 체크
+        if (playerTransform.position.x < transform.position.x && currentDirection == Vector3.left)
+        {
+            playerInSight = true;
+        }
+        else if (playerTransform.position.x > transform.position.x && currentDirection == Vector3.right)
+        {
+            playerInSight = true;
+        }
+        else
+        {
+            playerInSight = false;
+        }
     }
 }
