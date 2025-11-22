@@ -5,103 +5,116 @@ public enum StartDir { Left, Right } //맛도리장도리 시작방향설정 드
 [RequireComponent(typeof(Rigidbody2D))]
 public class Enemy : MonoBehaviour
 {
+    #region Public Variables (Inspector)
     [Header("Patrol")]
     public float speed = 4f;
     public float patrolDistance = 5f;
     public StartDir startDirection = StartDir.Left; // Inspector용 드롭다운
 
     [Header("Detection")]
-    public float detectRadius = 5f;            
-    public float detectHeight = 0.5f;          // 같은 층 판정을 위한 높이 허용 오차
-    public GameObject alertIndicatorPrefab;    
+    public float detectRadius = 5f;            // 감지 반경
+    public float detectHeight = 0.3f;          // 같은층 판정 범위
+    public GameObject alertIndicatorPrefab;    // 발견 시 띄울 느낌표 프리팹.. 을~ 만들어야겠죠? ㅎㅎ
     public bool playerInSight = false;
 
     [Header("Aim")]
     public float aimDelay = 0.5f; //조준시간
     public float aimStopDistance = 5f;
 
+    [Header("Arrow Shooting")]
+    public GameObject arrowPrefab;
+    public Vector2 arrowVelocity;
+    public float duration;
+    #endregion
+
+    #region Private Variables (Internal)
+    // Components
     private Rigidbody2D _rigidbody;
-    private Vector3 currentDirection;
-    private Vector3 patrolOrigin;
-    private Vector3 currentTarget;
-    private GameObject playerGameObject;
-    private Transform playerTransform;         
-    private PlayerController playerController;  
-    private bool isAlerted = false;
-    private bool isAiming = false;
-    private float aimTimer = 0f;
-    private bool isShooting = false;
-    private GameObject alertInstance;
+    private Transform _playerTransform;
+    private PlayerController _playerController;
+    private GameObject _playerGameObject;
+
+    // 와리가리
+    private Vector3 _currentDirection;
+    private Vector3 _patrolOrigin;
+    private Vector3 _currentTarget;
+
+    // 감지/조준/발사
+    private bool _isAlerted = false;
+    private bool _isAiming = false;
+    private bool _isShooting = false;
+    private float _aimTimer = 0f;
+    private float _arrowTimer = 0f;
+    private GameObject _alertInstance;
+    #endregion
 
     void Start()
     {
         _rigidbody = GetComponent<Rigidbody2D>();
-        patrolOrigin = transform.position;
-        currentDirection = (startDirection == StartDir.Left) ? Vector3.left : Vector3.right;
-
-        // 한 줄로 합침: playerGameObject에 바로 찾은 결과를 넣음
-        playerGameObject = GameObject.FindGameObjectWithTag("Player");
-        if (playerGameObject != null)
+        _patrolOrigin = transform.position;
+        _currentDirection = (startDirection == StartDir.Left) ? Vector3.left : Vector3.right;
+        _playerGameObject = GameObject.FindGameObjectWithTag("Player");
+        if (_playerGameObject != null)
         {
-            playerTransform = playerGameObject.transform;
-            playerController = playerGameObject.GetComponent<PlayerController>();
+            _playerTransform = _playerGameObject.transform;
+            _playerController = _playerGameObject.GetComponent<PlayerController>();
         }
-
         SetNextTarget();
     }
 
     void Update()
     {
-        if (playerTransform == null) return; // 플레이어 없으면 철수철수~
+        if (_playerTransform == null) return; // 플레이어 없으면 철수철수~
 
-        float dist = Vector2.Distance(new Vector2(playerTransform.position.x, playerTransform.position.y), // 플레이어위치벡터
+        float dist = Vector2.Distance(new Vector2(_playerTransform.position.x, _playerTransform.position.y), // 플레이어위치벡터
                                       new Vector2(transform.position.x, transform.position.y)); // 적위치벡터
 
-        bool playerHanging = (playerController != null) && playerController.isHanging; //대롱대롱?
+        bool playerHanging = (_playerController != null) && _playerController.isHanging; //대롱대롱?
 
-        if (!isAiming && !isShooting)
+        if (!_isAiming && !_isShooting)
         {
             CheckPlayerInSight();
 
             if (dist <= detectRadius && !playerHanging && playerInSight)
             {   
-                if (!isAlerted)
+                if (!_isAlerted)
                 {
-                    isAlerted = true;
+                    _isAlerted = true;
                     ShowAlert();
                 }
 
-                if (!isAiming)
+                if (!_isAiming)
                 {
-                    isAiming = true;
-                    aimTimer = 0f;
+                    _isAiming = true;
+                    _aimTimer = 0f;
+                    _arrowTimer = 0f;
                 }
             }
             else
             {
-                if (isAlerted)
+                if (_isAlerted)
                 {
-                    isAlerted = false;
+                    _isAlerted = false;
                     HideAlert();
                 }
             }
         }
 
-        if (isAiming)
+        if (_isAiming)
         {
             if (dist > aimStopDistance)
             {
-                isAiming = false;
-                isAlerted = false;
+                _isAiming = false;
+                _isAlerted = false;
                 HideAlert();
             }
             else
             {
-                aimTimer += Time.deltaTime;
-                if (aimTimer >= aimDelay)
+                _aimTimer += Time.deltaTime;
+                if (_aimTimer >= aimDelay)
                 {
-                    isAiming = false;
-                    isShooting = true;
+                    _isAiming = false;
+                    _isShooting = true;
                     StartShooting();
                 }
             }
@@ -111,7 +124,7 @@ public class Enemy : MonoBehaviour
     void FixedUpdate() //물리엔진 업데이트는 이렇게 생겼대요
     {
         // 조준 또는 발사 상태에서는 이동 멈춤 (수직속도는 유지)
-        if (isAiming || isShooting || isAlerted)
+        if (_isAiming || _isShooting || _isAlerted)
         {
             _rigidbody.linearVelocity = new Vector2(0f, _rigidbody.linearVelocity.y); // 스답스답
             return; // 이후 패트롤무브로 넘어가지 못하도록
@@ -122,16 +135,16 @@ public class Enemy : MonoBehaviour
 
     void PatrolMove() // 움직움직
     {
-        float toTargetX = currentTarget.x - transform.position.x; // x값만 와리가리 왜 x값만이냐면.. 많은 이야기가 있는데요..
+        float toTargetX = _currentTarget.x - transform.position.x; // x값만 와리가리 왜 x값만이냐면.. 많은 이야기가 있는데요..
 
         if (Mathf.Abs(toTargetX) < 0.05f) //절댓값기준 목표거리가 0.05보다 작으면~ = 거의 도달했으면~
         {
-            _rigidbody.position = new Vector2(currentTarget.x, _rigidbody.position.y); // 위치보정
+            _rigidbody.position = new Vector2(_currentTarget.x, _rigidbody.position.y); // 위치보정
             _rigidbody.linearVelocity = new Vector2(0f, _rigidbody.linearVelocity.y); // 스답!
 
             // 출발점 갱신 및 방향 반전
-            patrolOrigin = currentTarget;
-            currentDirection = -currentDirection;
+            _patrolOrigin = _currentTarget;
+            _currentDirection = -_currentDirection;
             SetNextTarget();
             return;
         }
@@ -143,9 +156,9 @@ public class Enemy : MonoBehaviour
 
     void SetNextTarget() // 다음 이동점
     {
-        Vector3 target = patrolOrigin + currentDirection * Mathf.Max(0.01f, patrolDistance); // 목표 = 출발점 + (방향 * 거리)
-        target.y = patrolOrigin.y; // y좌표 고정
-        currentTarget = target;
+        Vector3 target = _patrolOrigin + _currentDirection * Mathf.Max(0.01f, patrolDistance); // 목표 = 출발점 + (방향 * 거리)
+        target.y = _patrolOrigin.y; // y좌표 고정
+        _currentTarget = target;
     }
 
     void FaceDirection(Vector3 dir) // 스프라이트 생겼을 때의 얘기지만요~
@@ -158,7 +171,7 @@ public class Enemy : MonoBehaviour
 
     void ShowAlert()
     {
-        if (alertInstance != null) return;
+        if (_alertInstance != null) return;
         // TextMesh로 '!' 생성
         GameObject go = new GameObject("AlertText");
         go.transform.SetParent(transform);
@@ -169,15 +182,15 @@ public class Enemy : MonoBehaviour
         tm.fontSize = 64;
         tm.color = Color.yellow;
         tm.anchor = TextAnchor.MiddleCenter;
-        alertInstance = go;
+        _alertInstance = go;
     }
 
     void HideAlert()
     {
-        if (alertInstance != null)
+        if (_alertInstance != null)
         {
-            Destroy(alertInstance);
-            alertInstance = null;
+            Destroy(_alertInstance);
+            _alertInstance = null;
         }
     }
 
@@ -192,20 +205,17 @@ public class Enemy : MonoBehaviour
 
     void CheckPlayerInSight()
     {
-        // 높이 차이 확인 - 같은 층에 있는지 체크
-        float heightDifference = Mathf.Abs(playerTransform.position.y - transform.position.y);
+        float heightDifference = Mathf.Abs(_playerTransform.position.y - transform.position.y);
         if (heightDifference > detectHeight)
         {
             playerInSight = false;
             return;
         }
-
-        // 기존 방향 체크
-        if (playerTransform.position.x < transform.position.x && currentDirection == Vector3.left)
+        if (_playerTransform.position.x < transform.position.x && _currentDirection == Vector3.left)
         {
             playerInSight = true;
         }
-        else if (playerTransform.position.x > transform.position.x && currentDirection == Vector3.right)
+        else if (_playerTransform.position.x > transform.position.x && _currentDirection == Vector3.right)
         {
             playerInSight = true;
         }
