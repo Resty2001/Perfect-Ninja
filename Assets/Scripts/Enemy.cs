@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 public enum StartDir { Left, Right } //맛도리장도리 시작방향설정 드롭다운 
 
@@ -25,6 +26,8 @@ public class Enemy : MonoBehaviour
     public GameObject arrowPrefab;
     public Vector2 arrowVelocity;
     public float duration;
+    public float ArrowLifeTime;
+
     #endregion
 
     #region Private Variables (Internal)
@@ -44,7 +47,7 @@ public class Enemy : MonoBehaviour
     private bool _isAiming = false;
     private bool _isShooting = false;
     private float _aimTimer = 0f;
-    private float _arrowTimer = 0f;
+    private float _shootTimer = 0f;  
     private GameObject _alertInstance;
     #endregion
 
@@ -69,9 +72,20 @@ public class Enemy : MonoBehaviour
         float dist = Vector2.Distance(new Vector2(_playerTransform.position.x, _playerTransform.position.y), // 플레이어위치벡터
                                       new Vector2(transform.position.x, transform.position.y)); // 적위치벡터
 
-        bool playerHanging = (_playerController != null) && _playerController.isHanging; //대롱대롱?
+        bool playerHanging = (_playerController != null) && _playerController.isHanging;
 
-        if (!_isAiming && !_isShooting)
+        if (_isShooting)
+        {
+            _shootTimer += Time.deltaTime;
+            if (_shootTimer >= duration)
+            {
+                _isShooting = false;
+                _shootTimer = 0f;
+            }
+            return; // 쿨다운 중에는 다른 행동 안함
+        }
+
+        if (!_isAiming)
         {
             CheckPlayerInSight();
 
@@ -87,7 +101,6 @@ public class Enemy : MonoBehaviour
                 {
                     _isAiming = true;
                     _aimTimer = 0f;
-                    _arrowTimer = 0f;
                 }
             }
             else
@@ -115,7 +128,9 @@ public class Enemy : MonoBehaviour
                 {
                     _isAiming = false;
                     _isShooting = true;
-                    StartShooting();
+                    _shootTimer = 0f;
+                    
+                    FireArrow();
                 }
             }
         }
@@ -172,7 +187,6 @@ public class Enemy : MonoBehaviour
     void ShowAlert()
     {
         if (_alertInstance != null) return;
-        // TextMesh로 '!' 생성
         GameObject go = new GameObject("AlertText");
         go.transform.SetParent(transform);
         go.transform.localPosition = Vector3.up * 1.5f;
@@ -194,13 +208,22 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    // 발사 시작(여기서는 스텁: 실제 발사 구현은 이후에 연결)
-    void StartShooting()
+    void FireArrow()
     {
-        // isShooting 플래그를 사용해 FixedUpdate/다른 로직에서 발사 동작 구현
-        // 예: Instantiate 총알, 쿨다운 등. 현재는 로그용으로만 둠.
-        Debug.Log($"{name}: StartShooting() called");
-        // TODO: 실제 발사 구현 추가
+        if (arrowPrefab == null)
+        {
+            Debug.LogWarning("arrowPrefab이 설정되지 않았습니다!");
+            return;
+        }
+        
+        Debug.Log("화살 발사!");
+        
+        var arrow = Instantiate(arrowPrefab, transform.position, Quaternion.identity);
+        var arrowComponent = arrow.GetComponent<Arrow>();
+        
+        Vector2 adjustedVelocity = new Vector2(arrowVelocity.x * _currentDirection.x, arrowVelocity.y);
+        arrowComponent.velocity = adjustedVelocity;
+        arrowComponent.ArrowLifeTime = ArrowLifeTime;
     }
 
     void CheckPlayerInSight()

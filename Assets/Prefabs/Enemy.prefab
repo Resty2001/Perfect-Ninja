@@ -184,3 +184,7 @@ MonoBehaviour:
   playerInSight: 0
   aimDelay: 0.5
   aimStopDistance: 5
+  arrowPrefab: {fileID: 6409881901793331401, guid: 134dec7e53cf641b3bb70df89fffccec, type: 3}
+  arrowVelocity: {x: 18, y: 0}
+  duration: 3
+  ArrowLifeTime: 5
