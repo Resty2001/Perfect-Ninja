@@ -7,6 +7,9 @@ TagManager:
   - Ground
   - Ceiling
   - Retry
+  - Noise
+  - Dagger
+  - Enemy
   layers:
   - Default
   - TransparentFX

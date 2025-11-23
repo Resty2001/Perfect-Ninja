@@ -820,11 +820,15 @@ MonoBehaviour:
   staminaDrainRate: 1
   normalGravity: 1
   heavyGravity: 3
+  noisePrefab: {fileID: 1449407823927497520, guid: 335f4d890ce846c43bfa916b949a5edd, type: 3}
+  daggerPrefab: {fileID: 4586911519162791827, guid: a7c53e42a08212f42a18acc1d8b19cbf, type: 3}
   isGrounded: 0
   isHanging: 0
-  isActing: 0
+  isClimbing: 0
   isForcedFall: 0
   isStunned: 0
+  isAttacking: 0
+  isDead: 0
   currentStamina: 0
   motionDuration: 0.5
 --- !u!61 &590054884
@@ -965,7 +969,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: -3, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1, y: 1.5, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -1113,6 +1117,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Enemy
       objectReference: {fileID: 0}
+    - target: {fileID: 4292455044317804503, guid: 426e580b004b64f3d9cb486cdd517021, type: 3}
+      propertyPath: m_TagString
+      value: Enemy
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1128,7 +1136,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2899825290838088349, guid: 134dec7e53cf641b3bb70df89fffccec, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -2.99
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 2899825290838088349, guid: 134dec7e53cf641b3bb70df89fffccec, type: 3}
       propertyPath: m_LocalPosition.y
