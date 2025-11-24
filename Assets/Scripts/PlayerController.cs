@@ -1,7 +1,5 @@
 using UnityEngine;
 using System.Collections;
-// [추가] Scene 관리를 위해 필요하지만 지금은 주석 처리된 코드에만 사용됨
-using UnityEngine.SceneManagement; 
 
 public class PlayerController : MonoBehaviour
 {
@@ -22,15 +20,18 @@ public class PlayerController : MonoBehaviour
     [Header("Prefabs")]
     public GameObject noisePrefab; 
     public GameObject daggerPrefab;
+    public GameObject stunGaugePrefab;
 
     [Header("State Flags")]
     public bool isGrounded;
     public bool isHanging;
     public bool isClimbing; 
+    public bool isLadderClimbing; 
     public bool isForcedFall;
     public bool isStunned;
     public bool isAttacking;
-    public bool isDead; // [추가] 죽은 상태 확인용
+    public bool isDead;
+    public bool isAirAttacking;
 
     public float currentStamina;
 
@@ -43,6 +44,14 @@ public class PlayerController : MonoBehaviour
 
     private Rigidbody2D rb;
     private Coroutine scaleCoroutine;
+    private Transform nearbyLadder;
+
+    private int playerLayer;
+    private int groundLayer;
+    private int firstGroundLayer;
+
+    // 착지 소음 방지용 플래그
+    private bool skipLandingNoise = false; 
 
     void Start()
     {
@@ -54,14 +63,18 @@ public class PlayerController : MonoBehaviour
         isGrounded = true;
         isHanging = false;
         isClimbing = false;
+        isLadderClimbing = false;
         isForcedFall = false;
         isAttacking = false;
         isDead = false;
+
+        playerLayer = LayerMask.NameToLayer("Player");
+        groundLayer = LayerMask.NameToLayer("Ground");
+        firstGroundLayer = LayerMask.NameToLayer("1st Floor");
     }
 
     void Update()
     {
-        // [수정] 죽었거나 기절했으면 입력 불가
         if (isStunned || isDead) return;
 
         HandleInput();
@@ -70,13 +83,20 @@ public class PlayerController : MonoBehaviour
 
     void FixedUpdate()
     {
-        // [수정] 죽었거나 기절했으면 이동 불가
         if (isStunned || isDead) return;
         Move();
     }
 
     void Move()
     {
+        // 1. 사다리 이동 로직 (가장 우선)
+        if (isLadderClimbing)
+        {
+            HandleLadderMovement();
+            return;
+        }
+
+        // 2. 다른 상태 체크
         if (isClimbing || isAttacking) return;
 
         if (!isGrounded && !isHanging)
@@ -85,6 +105,7 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
+        // 3. 일반 이동
         float xInput = Input.GetAxisRaw("Horizontal");
         
         if (xInput != 0)
@@ -102,22 +123,79 @@ public class PlayerController : MonoBehaviour
         rb.linearVelocity = new Vector2(xInput * currentSpeed, rb.linearVelocity.y);
     }
 
+    // --- [핵심 수정] 사다리 위에서의 이동 로직 ---
+    void HandleLadderMovement()
+    {
+        float yInput = Input.GetAxisRaw("Vertical"); // W, S
+        float xInput = Input.GetAxisRaw("Horizontal"); // A, D
+
+        // 1. 바닥에 닿아있는지 확인 (사다리 타는 중엔 충돌을 무시하므로 Raycast 사용)
+        bool isTouchingGround = CheckGroundRaycast();
+
+        // 2. 바닥에 닿아있고, 좌우 입력이 있다면 -> 사다리 탈출 (걷기 시작)
+        if (isTouchingGround && xInput != 0)
+        {
+            StopLadderClimbing();
+            isGrounded = true;
+            // 즉시 걷기 속도 적용 (부드러운 전환)
+            rb.linearVelocity = new Vector2(xInput * groundSpeed, rb.linearVelocity.y);
+            return;
+        }
+
+        // 3. 바닥이 아니거나 좌우 입력이 없으면 -> Y축 이동만 허용, X축 고정
+        rb.linearVelocity = new Vector2(0f, yInput * climbSpeed);
+    }
+
+    // 바닥 감지용 레이캐스트 (충돌 무시 상태에서도 바닥 감지)
+    bool CheckGroundRaycast()
+    {
+        Vector2 rayOrigin = new Vector2(transform.position.x, transform.position.y - 0.75f);
+        
+        // 비트 연산자(|)를 사용하여 두 레이어를 합친 마스크를 만듭니다.
+        // 이것은 "Ground 레이어 이거나 1st Floor 레이어인 것"을 의미합니다.
+        int combinedLayerMask = (1 << groundLayer) | (1 << firstGroundLayer);
+
+        RaycastHit2D hit = Physics2D.Raycast(rayOrigin, Vector2.down, 0.1f, combinedLayerMask);
+        
+        return hit.collider != null;
+    }
+
     void HandleInput()
     {
-        if (Input.GetKeyDown(KeyCode.Space) && !isAttacking)
+        // [조건 수정] 사다리 타기 시작 조건:
+        // 1. 사다리 근처
+        // 2. 바닥에 있어야 함 (isGrounded) -> 천장 매달리기 상태 불가능
+        // 3. 오차 범위 내
+        if (nearbyLadder != null && !isLadderClimbing && isGrounded && !isAttacking && !isStunned)
+        {
+            if (Mathf.Abs(transform.position.x - nearbyLadder.position.x) <= 0.2f)
+            {
+                float yInput = Input.GetAxisRaw("Vertical");
+                if (yInput != 0) 
+                {
+                    StartLadderClimbing();
+                }
+            }
+        }
+
+        // 공격
+        if (Input.GetKeyDown(KeyCode.Space) && !isAttacking && !isLadderClimbing) 
         {
             if (isGrounded)
             {
                 StartCoroutine(ProcessGroundAttack());
             }
-            else if (!isGrounded && !isHanging && !isClimbing)
+            else if (!isGrounded && !isHanging && !isClimbing && !isAirAttacking)
             {
                 PerformAirAttack();
             }
         }
 
+        // E키 상호작용
         if (Input.GetKeyDown(KeyCode.E))
         {
+            if (isLadderClimbing) return; // 사다리 중엔 E키 무시
+
             if (isHanging)
             {
                 DropFromCeiling(false);
@@ -129,46 +207,60 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // --- 공격 로직 ---
+    // --- 사다리 상태 관리 ---
+
+    void StartLadderClimbing()
+    {
+        isLadderClimbing = true;
+        isGrounded = false; // 타는 순간 바닥 판정 끔 (로직상)
+        rb.gravityScale = 0f; 
+        rb.linearVelocity = Vector2.zero;
+
+        // X축 위치 보정 (중앙 정렬)
+        transform.position = new Vector3(nearbyLadder.position.x, transform.position.y, transform.position.z);
+        
+        // [핵심] 땅/천장과 충돌 무시 (뚫고 지나가기 위해)
+        Physics2D.IgnoreLayerCollision(playerLayer, groundLayer, true);
+    }
+
+    void StopLadderClimbing()
+    {
+        isLadderClimbing = false;
+        rb.gravityScale = normalGravity;
+        rb.linearVelocity = Vector2.zero;
+
+        // 사다리에서 내릴 때 (걷기로 전환 시) 착지 소음 방지
+        skipLandingNoise = true;
+        isForcedFall = false;
+
+        // 충돌 다시 활성화
+        Physics2D.IgnoreLayerCollision(playerLayer, groundLayer, false);
+    }
+
+    // --- 기타 기능 (공격, 소음 등) ---
+
     IEnumerator ProcessGroundAttack()
     {
         isAttacking = true;
         rb.linearVelocity = Vector2.zero;
-
         GameObject dagger = Instantiate(daggerPrefab, transform.position, Quaternion.identity);
         dagger.transform.SetParent(transform); 
         dagger.transform.localScale = new Vector3(1f, 0.2f, 1f); 
-
         Vector3 startPos = Vector3.zero;
         Vector3 endPos = new Vector3(facingDirection * 1.0f, 0, 0); 
-
         float attackHalfDuration = 0.25f;
         float elapsed = 0f;
-
-        while (elapsed < attackHalfDuration)
-        {
-            elapsed += Time.deltaTime;
-            float t = elapsed / attackHalfDuration;
-            dagger.transform.localPosition = Vector3.Lerp(startPos, endPos, t);
-            yield return null;
-        }
+        while (elapsed < attackHalfDuration) { elapsed += Time.deltaTime; float t = elapsed / attackHalfDuration; dagger.transform.localPosition = Vector3.Lerp(startPos, endPos, t); yield return null; }
         dagger.transform.localPosition = endPos;
-
         elapsed = 0f;
-        while (elapsed < attackHalfDuration)
-        {
-            elapsed += Time.deltaTime;
-            float t = elapsed / attackHalfDuration;
-            dagger.transform.localPosition = Vector3.Lerp(endPos, startPos, t);
-            yield return null;
-        }
-        
+        while (elapsed < attackHalfDuration) { elapsed += Time.deltaTime; float t = elapsed / attackHalfDuration; dagger.transform.localPosition = Vector3.Lerp(endPos, startPos, t); yield return null; }
         Destroy(dagger);
         isAttacking = false;
     }
 
     void PerformAirAttack()
     {
+        isAirAttacking = true;
         Vector3 spawnPos = transform.position + new Vector3(0, -0.5f, 0); 
         GameObject dagger = Instantiate(daggerPrefab, spawnPos, Quaternion.identity);
         dagger.transform.SetParent(transform); 
@@ -176,7 +268,6 @@ public class PlayerController : MonoBehaviour
         Destroy(dagger, 0.25f);
     }
 
-    // --- 이동 및 상태 로직 ---
     void StartClimbing()
     {
         isGrounded = false;
@@ -192,34 +283,20 @@ public class PlayerController : MonoBehaviour
         isClimbing = false;
         isForcedFall = forced;
         StartScaleCoroutine(originalScale);
-
-        if (forced) 
-        {
-            rb.gravityScale = heavyGravity;
-            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
-        }
-        else 
-        {
-            rb.gravityScale = normalGravity;
-            rb.linearVelocity = Vector2.down * 1.0f; 
-        }
+        if (forced) { rb.gravityScale = heavyGravity; rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y); }
+        else { rb.gravityScale = normalGravity; rb.linearVelocity = Vector2.down * 1.0f; }
     }
 
-    // --- [중요] 충돌 감지 로직 ---
+    // --- 충돌 감지 ---
 
-    // 1. 물리적 충돌 (몸통 박치기 등)
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        // [우선순위 1] Game Over 체크 (가장 먼저 연산)
-        if (collision.gameObject.CompareTag("Enemy"))
-        {
-            GameOver();
-            return; // 죽었으므로 아래 로직(착지, 매달리기 등) 실행 안 함
-        }
+        if (collision.gameObject.CompareTag("Enemy")) { GameOver(); return; }
 
-        // [우선순위 2] 천장 매달리기
         if (collision.gameObject.CompareTag("Ceiling"))
         {
+            if (isLadderClimbing) return; // 사다리 중엔 천장 무시
+
             if (isClimbing)
             {
                 isClimbing = false;
@@ -229,93 +306,90 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        // [우선순위 3] 바닥 착지
         if (collision.gameObject.CompareTag("Ground"))
         {
+            // [주의] 사다리 타는 중에도 물리 충돌을 '잠깐' 켜거나 
+            // StopLadderClimbing 직후에 여기로 들어올 수 있음
+            if (isLadderClimbing) return;
+
             if (!isGrounded)
             {
                 isGrounded = true;
                 isClimbing = false;
                 rb.gravityScale = normalGravity;
 
-                if (isForcedFall)
+                if (skipLandingNoise)
                 {
-                    CreateLandingNoise(5f);
-                    StartCoroutine(StunRoutine());
+                    skipLandingNoise = false; // 소음 없이 착지 처리만 함
                 }
                 else
                 {
-                    CreateLandingNoise(3f);
+                    if (isForcedFall) { CreateLandingNoise(5f); StartCoroutine(StunRoutine()); }
+                    else { CreateLandingNoise(3f); }
                 }
                 isForcedFall = false;
+                isAirAttacking = false;
             }
         }
     }
 
-    // 2. 트리거 충돌 (화살, 가시, 투사체 등)
-    // [추가] 물리적 충돌 없이 겹침만 감지하는 경우도 Game Over 처리를 위해 추가
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        // [우선순위 1] Game Over 체크
-        if (collision.CompareTag("Retry"))
+        if (collision.CompareTag("Retry")) { GameOver(); return; }
+        if (collision.CompareTag("Ladder")) { nearbyLadder = collision.transform; }
+    }
+
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Ladder"))
         {
-            GameOver();
-            return;
+            nearbyLadder = null;
+            // 사다리 꼭대기를 벗어나면 자동 종료
+            if (isLadderClimbing) StopLadderClimbing();
         }
     }
 
-    // --- Game Over 처리 함수 ---
-    void GameOver()
-    {
-        if (isDead) return; // 이미 죽었으면 중복 실행 방지
-
-        isDead = true;
-        
-        // 움직임 정지
-        rb.linearVelocity = Vector2.zero;
-        rb.gravityScale = normalGravity; // 공중에서 죽으면 떨어지도록
-        
-        Debug.Log("Game Over!"); // 콘솔 확인용
-
-        // TODO: 나중에 Game Over Scene이 준비되면 주석 해제하여 사용
-        // SceneManager.LoadScene("GameOverScene"); 
-    }
-
-    // ----------------------------
-
+    void GameOver() { if (isDead) return; isDead = true; rb.linearVelocity = Vector2.zero; rb.gravityScale = normalGravity; Debug.Log("Game Over!"); }
+    
     void CreateLandingNoise(float widthSize)
     {
         if (noisePrefab == null) return;
         float bottomY = transform.position.y - 0.75f;
-        
         Vector3 rightPos = new Vector3(transform.position.x + (widthSize * 0.5f), bottomY + 0.25f, 0);
-        GameObject rightNoise = Instantiate(noisePrefab, rightPos, Quaternion.identity);
-        rightNoise.transform.localScale = new Vector3(widthSize, 0.5f, 1f);
-
+        Instantiate(noisePrefab, rightPos, Quaternion.identity).transform.localScale = new Vector3(widthSize, 0.5f, 1f);
         Vector3 leftPos = new Vector3(transform.position.x - (widthSize * 0.5f), bottomY + 0.25f, 0);
-        GameObject leftNoise = Instantiate(noisePrefab, leftPos, Quaternion.identity);
-        leftNoise.transform.localScale = new Vector3(widthSize, 0.5f, 1f);
+        Instantiate(noisePrefab, leftPos, Quaternion.identity).transform.localScale = new Vector3(widthSize, 0.5f, 1f);
     }
 
     void HandleStamina()
     {
-        if (isGrounded && currentStamina < maxStamina)
-        {
-            currentStamina += staminaRecoveryRate * Time.deltaTime;
-        }
+        if (isGrounded && currentStamina < maxStamina) currentStamina += staminaRecoveryRate * Time.deltaTime;
         currentStamina = Mathf.Clamp(currentStamina, 0, maxStamina);
-
-        if (isHanging && currentStamina <= 0)
-        {
-            DropFromCeiling(true);
-        }
+        if (isHanging && currentStamina <= 0) DropFromCeiling(true);
     }
 
     IEnumerator StunRoutine()
     {
-        isStunned = true;
-        rb.linearVelocity = Vector2.zero;
+        isStunned = true; rb.linearVelocity = Vector2.zero;
+        if (stunGaugePrefab != null)
+        {
+            // 플레이어 머리 위쪽 위치 계산 (1.5는 플레이어 키, +0.5 여유)
+            Vector3 gaugePos = transform.position + new Vector3(0, 1.2f, 0); 
+            
+            GameObject gaugeObj = Instantiate(stunGaugePrefab, gaugePos, Quaternion.identity);
+            
+            gaugeObj.transform.SetParent(transform); 
+
+            // 스크립트 가져와서 시간 설정 (여기선 1초)
+            StunGauge gaugeScript = gaugeObj.GetComponent<StunGauge>();
+            if (gaugeScript != null)
+            {
+                gaugeScript.Setup(1.0f); // 기절 시간 1초 전달
+            }
+        }
+
         yield return new WaitForSeconds(1.0f);
+        
         isStunned = false;
     }
 
@@ -329,13 +403,7 @@ public class PlayerController : MonoBehaviour
     {
         Vector3 startScale = transform.localScale;
         float elapsed = 0f;
-        while (elapsed < motionDuration)
-        {
-            elapsed += Time.deltaTime;
-            float t = elapsed / motionDuration;
-            transform.localScale = Vector3.Lerp(startScale, targetScale, t);
-            yield return null;
-        }
+        while (elapsed < motionDuration) { elapsed += Time.deltaTime; float t = elapsed / motionDuration; transform.localScale = Vector3.Lerp(startScale, targetScale, t); yield return null; }
         transform.localScale = targetScale;
     }
 }
