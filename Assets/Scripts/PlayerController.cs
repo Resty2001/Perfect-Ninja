@@ -6,7 +6,7 @@ public class PlayerController : MonoBehaviour
     [Header("Settings")]
     public float groundSpeed = 5f;
     public float hangSpeed = 3f;
-    public float climbSpeed = 5f;
+    public float climbSpeed = 8f;
 
     [Header("Stamina Settings")]
     public float maxStamina = 4f;
@@ -14,7 +14,7 @@ public class PlayerController : MonoBehaviour
     public float staminaDrainRate = 1f;
 
     [Header("Gravity Settings")]
-    public float normalGravity = 1f;
+    public float normalGravity = 2f;
     public float heavyGravity = 3f;
 
     [Header("Prefabs")]
@@ -323,9 +323,9 @@ public class PlayerController : MonoBehaviour
                     skipLandingNoise = false; // 소음 없이 착지 처리만 함
                 }
                 else
-                {
-                    if (isForcedFall) { CreateLandingNoise(5f); StartCoroutine(StunRoutine()); }
-                    else { CreateLandingNoise(3f); }
+                { //규리: 여기 수치 조절 해보고 있는데 문제 있다면 원래대로 해두셔도 됩니다
+                    if (isForcedFall) { CreateLandingNoise(10f); StartCoroutine(StunRoutine()); }
+                    else { CreateLandingNoise(7f); }
                 }
                 isForcedFall = false;
                 isAirAttacking = false;

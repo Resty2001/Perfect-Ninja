@@ -647,7 +647,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: -5, z: 0}
-  m_LocalScale: {x: 20, y: 0.5, z: 1}
+  m_LocalScale: {x: 20, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -907,12 +907,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -10}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.5, z: -10}
+  m_LocalScale: {x: 1, y: 0.6666667, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 590054887}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &545517657
 GameObject:
@@ -1082,11 +1082,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   groundSpeed: 5
   hangSpeed: 3
-  climbSpeed: 5
+  climbSpeed: 8
   maxStamina: 4
   staminaRecoveryRate: 0.5
   staminaDrainRate: 1
-  normalGravity: 1
+  normalGravity: 2
   heavyGravity: 3
   noisePrefab: {fileID: 1449407823927497520, guid: 335f4d890ce846c43bfa916b949a5edd, type: 3}
   daggerPrefab: {fileID: 4586911519162791827, guid: a7c53e42a08212f42a18acc1d8b19cbf, type: 3}
@@ -1242,7 +1242,8 @@ Transform:
   m_LocalPosition: {x: 8.29, y: -3, z: 0}
   m_LocalScale: {x: 1, y: 1.5, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 519420032}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &673228938
@@ -1366,15 +1367,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1464500666203339486, guid: a202ce1fceed0644ea76994fe34fe4d7, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 1464500666203339486, guid: a202ce1fceed0644ea76994fe34fe4d7, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 1464500666203339486, guid: a202ce1fceed0644ea76994fe34fe4d7, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 1464500666203339486, guid: a202ce1fceed0644ea76994fe34fe4d7, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -1457,6 +1458,10 @@ PrefabInstance:
       propertyPath: m_IsTrigger
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7977796277266549855, guid: 426e580b004b64f3d9cb486cdd517021, type: 3}
+      propertyPath: duration
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1466,7 +1471,6 @@ PrefabInstance:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 519420032}
   - {fileID: 329789181}
   - {fileID: 590054887}
   - {fileID: 433719844}
