@@ -28,5 +28,11 @@ public class Arrow : MonoBehaviour
             _hasHitGround = true;
             velocity = Vector2.zero;
         }
+
+        // 규리: 뭔가 화살이 Player를 그대로 패스해 버리는 게 이상해서 추가해뒀는데 일단 지금 확인한 바로는 문제 없었어요(2025.11.26 4:07)
+        if (other.CompareTag("Player"))
+        {
+            Destroy(gameObject);
+        }
     }
 }
