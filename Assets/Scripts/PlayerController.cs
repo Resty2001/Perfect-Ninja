@@ -52,10 +52,14 @@ public class PlayerController : MonoBehaviour
 
     // 착지 소음 방지용 플래그
     private bool skipLandingNoise = false; 
+    private Animator anim; // [추가] 애니메이터 참조 변수
+    private SpriteRenderer spriteRenderer; // [추가] 좌우 반전을 위해 필요
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        anim = GetComponent<Animator>(); // [추가] 컴포넌트 가져오기
+        spriteRenderer = GetComponent<SpriteRenderer>(); // [추가]
 
         currentStamina = maxStamina;
         transform.localScale = originalScale;
@@ -79,6 +83,7 @@ public class PlayerController : MonoBehaviour
 
         HandleInput();
         HandleStamina();
+        UpdateAnimationState();
     }
 
     void FixedUpdate()
@@ -158,6 +163,38 @@ public class PlayerController : MonoBehaviour
         RaycastHit2D hit = Physics2D.Raycast(rayOrigin, Vector2.down, 0.1f, combinedLayerMask);
         
         return hit.collider != null;
+    }
+
+    void UpdateAnimationState()
+    {
+        if (anim == null) return;
+
+        // 1. 이동 (Running) 상태 전송
+        // 좌우 입력이 있거나, 실제 속도가 있을 때
+        bool isMoving = Mathf.Abs(rb.linearVelocity.x) > 0.1f;
+        anim.SetBool("IsRunning", isMoving);
+
+        // 2. 바닥/매달리기 상태 전송
+        anim.SetBool("IsGrounded", isGrounded);
+        anim.SetBool("IsHanging", isHanging);
+
+        // 3. 캐릭터 좌우 반전 (Flip)
+        // 사다리 타는 중에는 방향 전환 안 함 (선택 사항)
+        if (!isLadderClimbing) 
+    {
+        // 오른쪽으로 이동 중일 때 (Velocity X > 0)
+        if (rb.linearVelocity.x > 0.1f)
+        {
+            // [수정] 원본 이미지가 '왼쪽'을 보고 있다면 true여야 오른쪽을 봅니다.
+            // (원본이 오른쪽을 보고 있다면 false가 맞습니다. 반대로 넣어보세요.)
+            spriteRenderer.flipX = true; 
+        }
+        // 왼쪽으로 이동 중일 때 (Velocity X < 0)
+        else if (rb.linearVelocity.x < -0.1f)
+        {
+            spriteRenderer.flipX = false;
+        }
+    }
     }
 
     void HandleInput()
@@ -243,6 +280,7 @@ public class PlayerController : MonoBehaviour
     {
         isAttacking = true;
         rb.linearVelocity = Vector2.zero;
+        anim.SetTrigger("Attack");
         GameObject dagger = Instantiate(daggerPrefab, transform.position, Quaternion.identity);
         dagger.transform.SetParent(transform); 
         dagger.transform.localScale = new Vector3(1f, 0.2f, 1f); 
@@ -261,6 +299,7 @@ public class PlayerController : MonoBehaviour
     void PerformAirAttack()
     {
         isAirAttacking = true;
+        anim.SetTrigger("Attack");
         Vector3 spawnPos = transform.position + new Vector3(0, -0.5f, 0); 
         GameObject dagger = Instantiate(daggerPrefab, spawnPos, Quaternion.identity);
         dagger.transform.SetParent(transform); 
@@ -407,3 +446,4 @@ public class PlayerController : MonoBehaviour
         transform.localScale = targetScale;
     }
 }
+

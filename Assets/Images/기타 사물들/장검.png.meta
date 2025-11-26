@@ -1,13 +1,10 @@
 fileFormatVersion: 2
-guid: 1cb521feef1c7c94295b4e9ac303be0a
+guid: 750e309103789b64ca8c17ca215f00c9
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -2363412203272102866
-    second: IMG_8229_0
-  - first:
-      213: -3625864064016453261
-    second: IMG_8229_1
+      213: -1675572743621132310
+    second: "\uC7A5\uAC80_0"
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -129,45 +126,23 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: IMG_8229_0
+      name: "\uC7A5\uAC80_0"
       rect:
         serializedVersion: 2
-        x: 27
-        y: 67
-        width: 122
-        height: 118
+        x: 75
+        y: 91
+        width: 150
+        height: 62
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e2c942e7f19733fd0800000000000000
-      internalID: -2363412203272102866
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: IMG_8229_1
-      rect:
-        serializedVersion: 2
-        x: 211
-        y: 39
-        width: 6
-        height: 6
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 371f17c28d75eadc0800000000000000
-      internalID: -3625864064016453261
+      spriteID: aefb22d977b2fb8e0800000000000000
+      internalID: -1675572743621132310
       vertices: []
       indices: 
       edges: []
@@ -176,7 +151,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 5b5c89c44e433864dbd37b614d54b7b8
+    spriteID: 
     internalID: 0
     vertices: []
     indices: 
@@ -186,8 +161,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      IMG_8229_0: -2363412203272102866
-      IMG_8229_1: -3625864064016453261
+      "\uC7A5\uAC80_0": -1675572743621132310
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
