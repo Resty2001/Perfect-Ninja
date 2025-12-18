@@ -331,7 +331,10 @@ public class PlayerController : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.CompareTag("Enemy")) { GameOver(); return; }
+        if (collision.gameObject.CompareTag("Enemy"))
+        {
+            SceneManager.LoadScene("Scenes/GameOver");
+        }
 
         if (collision.gameObject.CompareTag("Ceiling"))
         {
@@ -364,8 +367,8 @@ public class PlayerController : MonoBehaviour
                 }
                 else
                 { //규리: 여기 수치 조절 해보고 있는데 문제 있다면 원래대로 해두셔도 됩니다
-                    if (isForcedFall) { CreateLandingNoise(10f); StartCoroutine(StunRoutine()); }
-                    else { CreateLandingNoise(7f); }
+                    if (isForcedFall) { CreateLandingNoise(7f); StartCoroutine(StunRoutine()); }
+                    else { CreateLandingNoise(3f); }
                 }
                 isForcedFall = false;
                 isAirAttacking = false;

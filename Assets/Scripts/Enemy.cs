@@ -8,8 +8,8 @@ public class Enemy : MonoBehaviour
 {
     #region Public Variables (Inspector)
     [Header("Patrol")]
-    public float speed = 4f;
-    public float patrolDistance = 5f;
+    public float speed = 2f;
+    public float patrolDistance = 7f;
     public StartDir startDirection = StartDir.Left; // Inspector용 드롭다운
 
     [Header("Detection")]
