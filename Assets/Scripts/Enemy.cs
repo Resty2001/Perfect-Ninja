@@ -49,6 +49,11 @@ public class Enemy : MonoBehaviour
     private float _aimTimer = 0f;
     private float _shootTimer = 0f;  
     private GameObject _alertInstance;
+
+    // 그뭐냐노이즈감지
+    private bool _isInvestigatingNoise = false;
+    private Vector3 _savedPatrolOrigin;
+    private Vector3 _savedDirection;
     #endregion
 
     void Start()
@@ -74,6 +79,7 @@ public class Enemy : MonoBehaviour
 
         bool playerHanging = (_playerController != null) && _playerController.isHanging;
 
+
         if (_isShooting)
         {
             _shootTimer += Time.deltaTime;
@@ -91,6 +97,15 @@ public class Enemy : MonoBehaviour
 
             if (dist <= detectRadius && !playerHanging && playerInSight)
             {   
+                // 노이즈 따라가고 있어도 플레이어발견시 취소
+                if (_isInvestigatingNoise)
+                {
+                    _isInvestigatingNoise = false;
+                    _patrolOrigin = _savedPatrolOrigin;
+                    _currentDirection = _savedDirection;
+                    SetNextTarget();
+                }
+
                 if (!_isAlerted)
                 {
                     _isAlerted = true;
@@ -136,7 +151,7 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    void FixedUpdate() //물리엔진 업데이트는 이렇게 생겼대요
+    void FixedUpdate() 
     {
         // 조준 또는 발사 상태에서는 이동 멈춤 (수직속도는 유지)
         if (_isAiming || _isShooting || _isAlerted)
@@ -156,6 +171,17 @@ public class Enemy : MonoBehaviour
         {
             _rigidbody.position = new Vector2(_currentTarget.x, _rigidbody.position.y); // 위치보정
             _rigidbody.linearVelocity = new Vector2(0f, _rigidbody.linearVelocity.y); // 스답!
+
+            // 소음 지점 도착후 복귀
+            if (_isInvestigatingNoise)
+            {
+                _isInvestigatingNoise = false;
+
+                _patrolOrigin = _savedPatrolOrigin;
+                _currentDirection = _savedDirection;
+                SetNextTarget();
+                return;
+            }
 
             // 출발점 갱신 및 방향 반전
             _patrolOrigin = _currentTarget;
@@ -247,4 +273,43 @@ public class Enemy : MonoBehaviour
             playerInSight = false;
         }
     }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (_isAiming || _isShooting) return;
+
+        // Noise 프리팹에 Noise.cs + BoxCollider2D(IsTrigger)가 붙어있는 전제
+        if (other.GetComponent<Noise>() == null) return;
+
+        GoToNoise(other.transform.position);
+    }
+
+    void GoToNoise(Vector3 noisePos)
+    {
+        // 현재 패트롤 상태 저장 (처음 진입할 때만)
+        if (!_isInvestigatingNoise)
+        {
+            _savedPatrolOrigin = _patrolOrigin;
+            _savedDirection = _currentDirection;
+        }
+
+        _isInvestigatingNoise = true;
+
+        // 방향 전환
+        float dirX = noisePos.x - transform.position.x;
+        if (Mathf.Abs(dirX) > 0.001f)
+        {
+            _currentDirection = (dirX > 0f) ? Vector3.right : Vector3.left;
+            FaceDirection(_currentDirection);
+        }
+
+        // 기존 이동 로직 재사용: 목표 x만 소음 위치로 바꿔 이동
+        _currentTarget = new Vector3(noisePos.x, transform.position.y, transform.position.z);
+
+        // 패트롤 원점도 현재 위치로 갱신해서 패트롤 목표가 덮어쓰지 않게 함
+        _patrolOrigin = transform.position;
+    }
+
+    // NOTE: OnTriggerEnter2D에서 조사 시작만 하고,
+    // 실제 이동/도착 판정은 기존 PatrolMove()가 처리합니다.
 }
