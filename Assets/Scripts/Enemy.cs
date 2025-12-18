@@ -28,8 +28,7 @@ public class Enemy : MonoBehaviour
     public float duration;
     public float ArrowLifeTime;
 
-    // 스프라이트 원본 방향이 프로젝트 기준과 반대라서 기본값을 true로 고정합니다.
-    // (Inspector에서 실수로 꺼지는 걸 방지하기 위해 숨깁니다.)
+    // 스프라이트 원본 방향이 닌자랑 반대라서 기본값을 true로 고정
     [HideInInspector]
     public bool invertFlipX = true;
 
