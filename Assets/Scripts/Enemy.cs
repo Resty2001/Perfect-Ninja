@@ -163,6 +163,7 @@ public class Enemy : MonoBehaviour
         PatrolMove();
     }
 
+    //---와리가리---
     void PatrolMove() // 움직움직
     {
         float toTargetX = _currentTarget.x - transform.position.x; // x값만 와리가리 왜 x값만이냐면.. 많은 이야기가 있는데요..
@@ -210,6 +211,8 @@ public class Enemy : MonoBehaviour
         else if (dir.x < 0) transform.localScale = new Vector3(-Mathf.Abs(s.x), s.y, s.z);
     }
 
+    //---감지---
+
     void ShowAlert()
     {
         if (_alertInstance != null) return;
@@ -234,25 +237,7 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    void FireArrow()
-    {
-        if (arrowPrefab == null)
-        {
-            Debug.LogWarning("arrowPrefab이 설정되지 않았습니다!");
-            return;
-        }
-        
-        Debug.Log("화살 발사!");
-        
-        var arrow = Instantiate(arrowPrefab, transform.position, Quaternion.identity);
-        var arrowComponent = arrow.GetComponent<Arrow>();
-        
-        Vector2 adjustedVelocity = new Vector2(arrowVelocity.x * _currentDirection.x, arrowVelocity.y);
-        arrowComponent.velocity = adjustedVelocity;
-        arrowComponent.ArrowLifeTime = ArrowLifeTime;
-    }
-
-    void CheckPlayerInSight()
+        void CheckPlayerInSight()
     {
         float heightDifference = Mathf.Abs(_playerTransform.position.y - transform.position.y);
         if (heightDifference > detectHeight)
@@ -273,12 +258,31 @@ public class Enemy : MonoBehaviour
             playerInSight = false;
         }
     }
+    
+    //---화살발사---
+    void FireArrow()
+    {
+        if (arrowPrefab == null)
+        {
+            Debug.LogWarning("arrowPrefab이 설정되지 않았습니다!");
+            return;
+        }
+        
+        Debug.Log("화살 발사!");
+        
+        var arrow = Instantiate(arrowPrefab, transform.position, Quaternion.identity);
+        var arrowComponent = arrow.GetComponent<Arrow>();
+        
+        Vector2 adjustedVelocity = new Vector2(arrowVelocity.x * _currentDirection.x, arrowVelocity.y);
+        arrowComponent.velocity = adjustedVelocity;
+        arrowComponent.ArrowLifeTime = ArrowLifeTime;
+    }
 
+    //---노이즈감지---
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (_isAiming || _isShooting) return;
 
-        // Noise 프리팹에 Noise.cs + BoxCollider2D(IsTrigger)가 붙어있는 전제
         if (other.GetComponent<Noise>() == null) return;
 
         GoToNoise(other.transform.position);
@@ -286,7 +290,7 @@ public class Enemy : MonoBehaviour
 
     void GoToNoise(Vector3 noisePos)
     {
-        // 현재 패트롤 상태 저장 (처음 진입할 때만)
+        // 현재 패트롤값 저장
         if (!_isInvestigatingNoise)
         {
             _savedPatrolOrigin = _patrolOrigin;
@@ -295,7 +299,7 @@ public class Enemy : MonoBehaviour
 
         _isInvestigatingNoise = true;
 
-        // 방향 전환
+        // 방향 휙휙
         float dirX = noisePos.x - transform.position.x;
         if (Mathf.Abs(dirX) > 0.001f)
         {
@@ -303,13 +307,8 @@ public class Enemy : MonoBehaviour
             FaceDirection(_currentDirection);
         }
 
-        // 기존 이동 로직 재사용: 목표 x만 소음 위치로 바꿔 이동
         _currentTarget = new Vector3(noisePos.x, transform.position.y, transform.position.z);
 
-        // 패트롤 원점도 현재 위치로 갱신해서 패트롤 목표가 덮어쓰지 않게 함
         _patrolOrigin = transform.position;
     }
-
-    // NOTE: OnTriggerEnter2D에서 조사 시작만 하고,
-    // 실제 이동/도착 판정은 기존 PatrolMove()가 처리합니다.
 }

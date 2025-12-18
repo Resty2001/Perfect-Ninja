@@ -10,7 +10,7 @@ public class Dagger : MonoBehaviour
         if (other.CompareTag("Enemy"))
         {
             // Debug.Log("적을 찔렀습니다!");
-            // Destroy(other.gameObject); 
+            Destroy(other.gameObject);
         }
     }
 }
