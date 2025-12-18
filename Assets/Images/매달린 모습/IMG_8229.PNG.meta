@@ -132,12 +132,12 @@ TextureImporter:
       name: IMG_8229_0
       rect:
         serializedVersion: 2
-        x: 27
-        y: 67
-        width: 122
-        height: 118
+        x: 62
+        y: 124
+        width: 127
+        height: 122
       alignment: 9
-      pivot: {x: 0.5, y: 1}
+      pivot: {x: 0.5, y: 0.3}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -146,28 +146,6 @@ TextureImporter:
       bones: []
       spriteID: e2c942e7f19733fd0800000000000000
       internalID: -2363412203272102866
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: IMG_8229_1
-      rect:
-        serializedVersion: 2
-        x: 211
-        y: 39
-        width: 6
-        height: 6
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 371f17c28d75eadc0800000000000000
-      internalID: -3625864064016453261
       vertices: []
       indices: 
       edges: []

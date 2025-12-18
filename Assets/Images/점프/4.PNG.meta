@@ -126,23 +126,23 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: IMG_8328_0
+      name: 4_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 500
-        height: 500
-      alignment: 9
-      pivot: {x: 0.5, y: 0}
+        x: 52
+        y: 124
+        width: 144
+        height: 132
+      alignment: 0
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: d7d0cb070c7d90210800000000000000
-      internalID: 1299807188998163837
+      spriteID: 9513d48cec70a7a40838b3024b0fa351
+      internalID: -1792069833
       vertices: []
       indices: 
       edges: []
@@ -161,7 +161,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      IMG_8328_0: 1299807188998163837
+      4_0: -1792069833
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

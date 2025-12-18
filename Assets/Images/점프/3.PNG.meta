@@ -126,23 +126,23 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: IMG_8327_0
+      name: 3_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 500
-        height: 500
-      alignment: 9
-      pivot: {x: 0.5, y: 0}
+        x: 30
+        y: 55
+        width: 188
+        height: 136
+      alignment: 0
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 05117942515147840800000000000000
-      internalID: 5220821048581624144
+      spriteID: 04ebfc09412198c45a8bd78e5c9919ac
+      internalID: -1224968152
       vertices: []
       indices: 
       edges: []
@@ -161,7 +161,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      IMG_8327_0: 5220821048581624144
+      3_0: -1224968152
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

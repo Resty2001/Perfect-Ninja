@@ -1,6 +1,6 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.SceneManagement;
+using UnityEngine.SceneManagement; // 씬 전환을 위해 필요
 
 public class PlayerController : MonoBehaviour
 {
@@ -36,15 +36,17 @@ public class PlayerController : MonoBehaviour
 
     public float currentStamina;
 
-    [Header("Visuals")]
-    public float motionDuration = 0.5f;
-    private Vector3 originalScale = new Vector3(1f, 1.5f, 1f);
-    private Vector3 hangScale = new Vector3(1.5f, 0.5f, 1f);
+    // [삭제] Visuals 관련 변수들 (scale 관련) 삭제함
+    // 픽셀 아트 애니메이션을 위해 강제 크기 조절 로직을 제거했습니다.
+    // public float motionDuration = 0.5f;
+    // private Vector3 originalScale = new Vector3(1f, 1.5f, 1f);
+    // private Vector3 hangScale = new Vector3(1.5f, 0.5f, 1f);
     
     private int facingDirection = 1; 
 
     private Rigidbody2D rb;
-    private Coroutine scaleCoroutine;
+    // [삭제] Scale 관련 코루틴 변수 삭제
+    // private Coroutine scaleCoroutine;
     private Transform nearbyLadder;
 
     private int playerLayer;
@@ -53,17 +55,20 @@ public class PlayerController : MonoBehaviour
 
     // 착지 소음 방지용 플래그
     private bool skipLandingNoise = false; 
-    private Animator anim; // [추가] 애니메이터 참조 변수
-    private SpriteRenderer spriteRenderer; // [추가] 좌우 반전을 위해 필요
+    private Animator anim; // 애니메이터 참조 변수
+    private SpriteRenderer spriteRenderer; // 좌우 반전을 위해 필요
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        anim = GetComponent<Animator>(); // [추가] 컴포넌트 가져오기
-        spriteRenderer = GetComponent<SpriteRenderer>(); // [추가]
+        anim = GetComponent<Animator>(); 
+        spriteRenderer = GetComponent<SpriteRenderer>(); 
 
         currentStamina = maxStamina;
-        transform.localScale = originalScale;
+        
+        // [수정] 스케일을 강제로 (1, 1, 1)로 고정합니다.
+        // 원본 픽셀 아트의 비율을 유지하기 위함입니다.
+        transform.localScale = Vector3.one; 
 
         isGrounded = true;
         isHanging = false;
@@ -129,7 +134,7 @@ public class PlayerController : MonoBehaviour
         rb.linearVelocity = new Vector2(xInput * currentSpeed, rb.linearVelocity.y);
     }
 
-    // --- [핵심 수정] 사다리 위에서의 이동 로직 ---
+    // --- 사다리 위에서의 이동 로직 ---
     void HandleLadderMovement()
     {
         float yInput = Input.GetAxisRaw("Vertical"); // W, S
@@ -157,8 +162,7 @@ public class PlayerController : MonoBehaviour
     {
         Vector2 rayOrigin = new Vector2(transform.position.x, transform.position.y - 0.75f);
         
-        // 비트 연산자(|)를 사용하여 두 레이어를 합친 마스크를 만듭니다.
-        // 이것은 "Ground 레이어 이거나 1st Floor 레이어인 것"을 의미합니다.
+        // Ground 레이어 이거나 1st Floor 레이어인 것
         int combinedLayerMask = (1 << groundLayer) | (1 << firstGroundLayer);
 
         RaycastHit2D hit = Physics2D.Raycast(rayOrigin, Vector2.down, 0.1f, combinedLayerMask);
@@ -171,7 +175,6 @@ public class PlayerController : MonoBehaviour
         if (anim == null) return;
 
         // 1. 이동 (Running) 상태 전송
-        // 좌우 입력이 있거나, 실제 속도가 있을 때
         bool isMoving = Mathf.Abs(rb.linearVelocity.x) > 0.1f;
         anim.SetBool("IsRunning", isMoving);
 
@@ -179,31 +182,28 @@ public class PlayerController : MonoBehaviour
         anim.SetBool("IsGrounded", isGrounded);
         anim.SetBool("IsHanging", isHanging);
 
-        // 3. 캐릭터 좌우 반전 (Flip)
-        // 사다리 타는 중에는 방향 전환 안 함 (선택 사항)
+        // [추가] 3. 사다리 타기 상태 연결
+        // 스크립트의 isLadderClimbing 변수 값을 애니메이터의 "IsClimbing" 파라미터에 넣습니다.
+        anim.SetBool("IsClimbing", isLadderClimbing); 
+
+        // 4. 캐릭터 좌우 반전 (Flip)
+        // 사다리 타는 중에는 방향 전환 안 함
         if (!isLadderClimbing) 
-    {
-        // 오른쪽으로 이동 중일 때 (Velocity X > 0)
-        if (rb.linearVelocity.x > 0.1f)
         {
-            // [수정] 원본 이미지가 '왼쪽'을 보고 있다면 true여야 오른쪽을 봅니다.
-            // (원본이 오른쪽을 보고 있다면 false가 맞습니다. 반대로 넣어보세요.)
-            spriteRenderer.flipX = true; 
+            if (rb.linearVelocity.x > 0.1f)
+            {
+                spriteRenderer.flipX = true; // (이미지 원본 방향에 따라 수정 필요)
+            }
+            else if (rb.linearVelocity.x < -0.1f)
+            {
+                spriteRenderer.flipX = false;
+            }
         }
-        // 왼쪽으로 이동 중일 때 (Velocity X < 0)
-        else if (rb.linearVelocity.x < -0.1f)
-        {
-            spriteRenderer.flipX = false;
-        }
-    }
     }
 
     void HandleInput()
     {
-        // [조건 수정] 사다리 타기 시작 조건:
-        // 1. 사다리 근처
-        // 2. 바닥에 있어야 함 (isGrounded) -> 천장 매달리기 상태 불가능
-        // 3. 오차 범위 내
+        // 사다리 타기 시작 조건
         if (nearbyLadder != null && !isLadderClimbing && isGrounded && !isAttacking && !isStunned)
         {
             if (Mathf.Abs(transform.position.x - nearbyLadder.position.x) <= 0.2f)
@@ -250,14 +250,14 @@ public class PlayerController : MonoBehaviour
     void StartLadderClimbing()
     {
         isLadderClimbing = true;
-        isGrounded = false; // 타는 순간 바닥 판정 끔 (로직상)
+        isGrounded = false; // 타는 순간 바닥 판정 끔
         rb.gravityScale = 0f; 
         rb.linearVelocity = Vector2.zero;
 
         // X축 위치 보정 (중앙 정렬)
         transform.position = new Vector3(nearbyLadder.position.x, transform.position.y, transform.position.z);
         
-        // [핵심] 땅/천장과 충돌 무시 (뚫고 지나가기 위해)
+        // 땅/천장과 충돌 무시 (뚫고 지나가기 위해)
         Physics2D.IgnoreLayerCollision(playerLayer, groundLayer, true);
     }
 
@@ -314,7 +314,9 @@ public class PlayerController : MonoBehaviour
         isClimbing = true;
         rb.gravityScale = 0f;
         rb.linearVelocity = Vector2.up * climbSpeed;
-        StartScaleCoroutine(hangScale);
+        
+        // [삭제] Scale 코루틴 삭제
+        // StartScaleCoroutine(hangScale);
     }
 
     void DropFromCeiling(bool forced)
@@ -322,7 +324,10 @@ public class PlayerController : MonoBehaviour
         isHanging = false;
         isClimbing = false;
         isForcedFall = forced;
-        StartScaleCoroutine(originalScale);
+        
+        // [삭제] Scale 코루틴 삭제
+        // StartScaleCoroutine(originalScale);
+        
         if (forced) { rb.gravityScale = heavyGravity; rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y); }
         else { rb.gravityScale = normalGravity; rb.linearVelocity = Vector2.down * 1.0f; }
     }
@@ -351,8 +356,6 @@ public class PlayerController : MonoBehaviour
 
         if (collision.gameObject.CompareTag("Ground"))
         {
-            // [주의] 사다리 타는 중에도 물리 충돌을 '잠깐' 켜거나 
-            // StopLadderClimbing 직후에 여기로 들어올 수 있음
             if (isLadderClimbing) return;
 
             if (!isGrounded)
@@ -366,7 +369,8 @@ public class PlayerController : MonoBehaviour
                     skipLandingNoise = false; // 소음 없이 착지 처리만 함
                 }
                 else
-                { //규리: 여기 수치 조절 해보고 있는데 문제 있다면 원래대로 해두셔도 됩니다
+                { 
+                    // 규리: 수치 조절 부분 (그대로 유지)
                     if (isForcedFall) { CreateLandingNoise(7f); StartCoroutine(StunRoutine()); }
                     else { CreateLandingNoise(3f); }
                 }
@@ -390,7 +394,6 @@ public class PlayerController : MonoBehaviour
         if (collision.CompareTag("Ladder"))
         {
             nearbyLadder = null;
-            // 사다리 꼭대기를 벗어나면 자동 종료
             if (isLadderClimbing) StopLadderClimbing();
         }
     }
@@ -419,18 +422,16 @@ public class PlayerController : MonoBehaviour
         isStunned = true; rb.linearVelocity = Vector2.zero;
         if (stunGaugePrefab != null)
         {
-            // 플레이어 머리 위쪽 위치 계산 (1.5는 플레이어 키, +0.5 여유)
             Vector3 gaugePos = transform.position + new Vector3(0, 1.2f, 0); 
             
             GameObject gaugeObj = Instantiate(stunGaugePrefab, gaugePos, Quaternion.identity);
             
             gaugeObj.transform.SetParent(transform); 
 
-            // 스크립트 가져와서 시간 설정 (여기선 1초)
             StunGauge gaugeScript = gaugeObj.GetComponent<StunGauge>();
             if (gaugeScript != null)
             {
-                gaugeScript.Setup(1.0f); // 기절 시간 1초 전달
+                gaugeScript.Setup(1.0f); 
             }
         }
 
@@ -439,18 +440,5 @@ public class PlayerController : MonoBehaviour
         isStunned = false;
     }
 
-    void StartScaleCoroutine(Vector3 target)
-    {
-        if (scaleCoroutine != null) StopCoroutine(scaleCoroutine);
-        scaleCoroutine = StartCoroutine(ChangeScaleProcess(target));
-    }
-
-    IEnumerator ChangeScaleProcess(Vector3 targetScale)
-    {
-        Vector3 startScale = transform.localScale;
-        float elapsed = 0f;
-        while (elapsed < motionDuration) { elapsed += Time.deltaTime; float t = elapsed / motionDuration; transform.localScale = Vector3.Lerp(startScale, targetScale, t); yield return null; }
-        transform.localScale = targetScale;
-    }
+    // [삭제] 크기 변형 관련 함수들 (StartScaleCoroutine, ChangeScaleProcess) 모두 삭제함
 }
-

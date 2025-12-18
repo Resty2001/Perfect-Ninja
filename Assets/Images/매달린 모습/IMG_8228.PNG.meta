@@ -132,12 +132,12 @@ TextureImporter:
       name: IMG_8228_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 256
-        height: 256
+        x: 65
+        y: 125
+        width: 135
+        height: 126
       alignment: 9
-      pivot: {x: 0.5, y: 1}
+      pivot: {x: 0.5, y: 0.3}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
