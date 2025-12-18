@@ -1,5 +1,6 @@
-using UnityEngine;
 using System.Collections;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
@@ -374,7 +375,10 @@ public class PlayerController : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("Retry")) { GameOver(); return; }
+        if (collision.CompareTag("Retry"))
+        {
+            SceneManager.LoadScene("Scenes/GameOver");
+        }
         if (collision.CompareTag("Ladder")) { nearbyLadder = collision.transform; }
     }
 
