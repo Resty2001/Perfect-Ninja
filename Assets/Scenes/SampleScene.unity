@@ -1381,11 +1381,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 818578222390308632, guid: 426e580b004b64f3d9cb486cdd517021, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: -3.48
       objectReference: {fileID: 0}
     - target: {fileID: 818578222390308632, guid: 426e580b004b64f3d9cb486cdd517021, type: 3}
       propertyPath: m_LocalPosition.y
+<<<<<<< Updated upstream
       value: -2.45
+=======
+<<<<<<< HEAD
+      value: -2.23
+=======
+      value: -2.45
+>>>>>>> b8caaa135c9d6ba919c5d5af53dc8e5426919ceb
+>>>>>>> Stashed changes
       objectReference: {fileID: 0}
     - target: {fileID: 818578222390308632, guid: 426e580b004b64f3d9cb486cdd517021, type: 3}
       propertyPath: m_LocalPosition.z
@@ -1430,6 +1438,26 @@ PrefabInstance:
     - target: {fileID: 4292455044317804503, guid: 426e580b004b64f3d9cb486cdd517021, type: 3}
       propertyPath: m_TagString
       value: Enemy
+      objectReference: {fileID: 0}
+    - target: {fileID: 4669485262331274805, guid: 426e580b004b64f3d9cb486cdd517021, type: 3}
+      propertyPath: m_Size.x
+      value: 1.5209774
+      objectReference: {fileID: 0}
+    - target: {fileID: 4669485262331274805, guid: 426e580b004b64f3d9cb486cdd517021, type: 3}
+      propertyPath: m_Size.y
+      value: 2.574109
+      objectReference: {fileID: 0}
+    - target: {fileID: 4669485262331274805, guid: 426e580b004b64f3d9cb486cdd517021, type: 3}
+      propertyPath: m_Offset.x
+      value: -0.0654766
+      objectReference: {fileID: 0}
+    - target: {fileID: 4669485262331274805, guid: 426e580b004b64f3d9cb486cdd517021, type: 3}
+      propertyPath: m_Offset.y
+      value: 0.0072009563
+      objectReference: {fileID: 0}
+    - target: {fileID: 7977796277266549855, guid: 426e580b004b64f3d9cb486cdd517021, type: 3}
+      propertyPath: invertFlipX
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
