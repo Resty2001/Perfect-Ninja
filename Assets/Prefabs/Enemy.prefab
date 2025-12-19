@@ -176,8 +176,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ce712d986a3f14cc5aaba5307d247375, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 4
-  patrolDistance: 5
+  speed: 3
+  patrolDistance: 7
   startDirection: 0
   detectRadius: 5
   detectHeight: 0.5
@@ -190,6 +190,7 @@ MonoBehaviour:
   duration: 3
   ArrowLifeTime: 5
   invertFlipX: 1
+  _isDead: 0
   deathLingerTime: 0.35
 --- !u!95 &-7116333422896771179
 Animator:

@@ -53,7 +53,7 @@ public class Enemy : MonoBehaviour
     // 감지/조준/발사
     private bool _isAlerted = false;
     private bool _isAiming = false;
-    private bool _isDead = false;
+    public bool _isDead = false;
     private float _aimTimer = 0f;
     private float _shootTimer = 0f;  
     private GameObject _alertInstance;

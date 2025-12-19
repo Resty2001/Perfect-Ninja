@@ -338,7 +338,12 @@ public class PlayerController : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Enemy"))
         {
-            SceneManager.LoadScene("Scenes/GameOver");
+            Enemy enemy = collision.gameObject.GetComponent<Enemy>();
+
+            if (enemy != null && !enemy._isDead)
+            {
+                SceneManager.LoadScene("Scenes/GameOver");
+            }
         }
 
         if (collision.gameObject.CompareTag("Ceiling"))
