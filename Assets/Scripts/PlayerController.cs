@@ -33,6 +33,7 @@ public class PlayerController : MonoBehaviour
     public bool isAttacking;
     public bool isDead;
     public bool isAirAttacking;
+    public bool isFalling;
 
     public float currentStamina;
 
@@ -77,6 +78,7 @@ public class PlayerController : MonoBehaviour
         isForcedFall = false;
         isAttacking = false;
         isDead = false;
+        isFalling = false;
 
         playerLayer = LayerMask.NameToLayer("Player");
         groundLayer = LayerMask.NameToLayer("Ground");
@@ -148,6 +150,7 @@ public class PlayerController : MonoBehaviour
         {
             StopLadderClimbing();
             isGrounded = true;
+            isFalling = false;
             // 즉시 걷기 속도 적용 (부드러운 전환)
             rb.linearVelocity = new Vector2(xInput * groundSpeed, rb.linearVelocity.y);
             return;
@@ -312,6 +315,7 @@ public class PlayerController : MonoBehaviour
     {
         isGrounded = false;
         isClimbing = true;
+        isFalling = false;
         rb.gravityScale = 0f;
         rb.linearVelocity = Vector2.up * climbSpeed;
         
@@ -324,6 +328,7 @@ public class PlayerController : MonoBehaviour
         isHanging = false;
         isClimbing = false;
         isForcedFall = forced;
+        isFalling = true;
         
         // [삭제] Scale 코루틴 삭제
         // StartScaleCoroutine(originalScale);
@@ -340,7 +345,7 @@ public class PlayerController : MonoBehaviour
         {
             Enemy enemy = collision.gameObject.GetComponent<Enemy>();
 
-            if (enemy != null && !enemy._isDead)
+            if (enemy != null && !enemy._isDead && (enemy._currentDirection.x * facingDirection < 0 || isFalling == true))
             {
                 SceneManager.LoadScene("Scenes/GameOver");
             }
@@ -354,6 +359,7 @@ public class PlayerController : MonoBehaviour
             {
                 isClimbing = false;
                 isHanging = true;
+                isFalling = false;
                 rb.linearVelocity = Vector2.zero;
                 rb.gravityScale = 0f;
             }
@@ -367,6 +373,7 @@ public class PlayerController : MonoBehaviour
             {
                 isGrounded = true;
                 isClimbing = false;
+                isFalling = false;
                 rb.gravityScale = normalGravity;
 
                 if (skipLandingNoise)

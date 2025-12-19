@@ -46,7 +46,7 @@ public class Enemy : MonoBehaviour
     private SpriteRenderer _spriteRenderer;
 
     // 와리가리
-    private Vector3 _currentDirection;
+    public Vector3 _currentDirection;
     private Vector3 _patrolOrigin;
     private Vector3 _currentTarget;
 
