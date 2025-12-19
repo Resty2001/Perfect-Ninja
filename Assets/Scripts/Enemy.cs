@@ -389,6 +389,17 @@ public class Enemy : MonoBehaviour
     {
         if (_anim == null) return;
         if (_pendingShoot) return;
+
+        // 공격 시작 시점에 항상 플레이어 방향을 다시 계산
+        if (_playerTransform != null)
+        {
+            float dirX = _playerTransform.position.x - transform.position.x;
+            if (Mathf.Abs(dirX) >= 0.001f)
+            {
+                SetFacingFromDirX(Mathf.Sign(dirX));
+            }
+        }
+
         _pendingShoot = true;
         _hasFiredThisShot = false;
         _anim.SetTrigger("Shoot");
@@ -399,6 +410,16 @@ public class Enemy : MonoBehaviour
     {
         if (_isDead) return;
         if (!_pendingShoot) return;
+
+        // Fire 프레임에서도 한번 더 방향 보정
+        if (_playerTransform != null)
+        {
+            float dirX = _playerTransform.position.x - transform.position.x;
+            if (Mathf.Abs(dirX) >= 0.001f)
+            {
+                SetFacingFromDirX(Mathf.Sign(dirX));
+            }
+        }
         FireArrow();
     }
 
