@@ -377,7 +377,7 @@ public class PlayerController : MonoBehaviour
                 { 
                     // 규리: 수치 조절 부분 (그대로 유지)
                     if (isForcedFall) { CreateLandingNoise(7f); StartCoroutine(StunRoutine()); }
-                    else { CreateLandingNoise(3f); }
+                    else { CreateLandingNoise(2f); }
                 }
                 isForcedFall = false;
                 isAirAttacking = false;
